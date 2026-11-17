@@ -9,37 +9,51 @@ class ChirpController extends Controller
 {
     public function index()
     {
-        //Busca os chirps e também carrega os usuários relacionados.
         $chirps = Chirp::with('user')
-        //Ordena os chirps do mais recente para o mais antigo, utilizando created_at como referência.
             ->latest()
-            ->take(50)  // Limit to 50 most recent chirps
+            ->take(50)
             ->get();
 
         return view('home', ['chirps' => $chirps]);
     }
 
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'message' => 'required|string|max:255',
+        ]);
 
-public function store(Request $request)
-{
-    // Validate the request
-    $validated = $request->validate([
-        'message' => 'required|string|max:255',
-    ], [
-        'message.required' => 'Please write something to chirp!',
-        'message.max' => 'Chirps must be 255 characters or less.',
-    ]);
+        $request->user()->chirps()->create($validated);
 
-    // Create the chirp
-    Chirp::create([
-        'message' => $validated['message'],
-    ]);
+        return redirect('/')->with('success', 'Your chirp has been posted!');
+    }
 
-    // Redirect back to the feed
-    return redirect('/')->with(
-        'success',
-        'Your chirp has been posted!'
-    );
-}
+    public function edit(Chirp $chirp)
+    {
+        $this->authorize('update', $chirp);
 
+        return view('chirps.edit', compact('chirp'));
+    }
+
+    public function update(Request $request, Chirp $chirp)
+    {
+        $this->authorize('update', $chirp);
+
+        $validated = $request->validate([
+            'message' => 'required|string|max:255',
+        ]);
+
+        $chirp->update($validated);
+
+        return redirect('/')->with('success', 'Chirp updated!');
+    }
+
+    public function destroy(Chirp $chirp)
+    {
+        $this->authorize('delete', $chirp);
+
+        $chirp->delete();
+
+        return redirect('/')->with('success', 'Chirp deleted!');
+    }
 }
