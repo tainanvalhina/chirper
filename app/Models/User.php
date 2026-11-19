@@ -10,12 +10,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
- 
+    use HasFactory;
+
     //$fillable = define quais campos podem receber atribuição em massa
     protected $fillable = [
         'name',
         'email',
         'password',
+        'bio',
+        'avatar',
     ];
 
     //Define quais atributos devem ser ocultados quando o Model é convertido em array ou JSON.
@@ -38,4 +41,6 @@ class User extends Authenticatable
 {
     return $this->hasMany(Chirp::class);
 }
+
+
 }

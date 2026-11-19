@@ -5,6 +5,7 @@ use App\Http\Controllers\ChirpController;
 use App\Http\Controllers\Auth\Register;
 use App\Http\Controllers\Auth\Login;
 use App\Http\Controllers\Auth\Logout;
+use App\Http\Controllers\ProfileController;
 
 
 Route::get('/', [ChirpController::class, 'index']);
@@ -31,6 +32,18 @@ Route::post('/login', Login::class)
 Route::post('/logout', Logout::class)
 ->middleware('auth')
 ->name('logout');
+
+//mostrar perfil do usuario
+Route::get('/users/{user}', [ProfileController::class, 'show'])
+    ->name('profile.show');
+
+    // Edição do perfil
+Route::get('/users/{user}/edit', [ProfileController::class, 'edit'])
+->name('profile.edit');
+
+Route::put('/users/{user}', [ProfileController::class, 'update'])
+->name('profile.update');
+
 
 // rotas protegidas
 Route::middleware('auth')->group(function () {

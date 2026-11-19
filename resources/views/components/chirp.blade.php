@@ -1,19 +1,29 @@
-
 @props(['chirp'])
 
 <div class="card bg-base-100 shadow">
     <div class="card-body">
         <div class="flex space-x-3">
             @if ($chirp->user)
-                <div class="avatar">
+                <a
+                    href="{{ route('profile.show', $chirp->user) }}"
+                    class="avatar"
+                >
                     <div class="size-10 rounded-full">
-                        <img
-                            src="https://avatars.laravel.cloud/{{ urlencode($chirp->user->email) }}"
-                            alt="{{ $chirp->user->name }}'s avatar"
-                            class="rounded-full"
-                        />
+                        @if ($chirp->user->avatar)
+                            <img
+                                src="{{ asset('storage/' . $chirp->user->avatar) }}"
+                                alt="{{ $chirp->user->name }}'s avatar"
+                                class="rounded-full"
+                            />
+                        @else
+                            <img
+                                src="https://avatars.laravel.cloud/{{ urlencode($chirp->user->email) }}"
+                                alt="{{ $chirp->user->name }}'s avatar"
+                                class="rounded-full"
+                            />
+                        @endif
                     </div>
-                </div>
+                </a>
             @else
                 <div class="avatar placeholder">
                     <div class="size-10 rounded-full">
@@ -29,9 +39,18 @@
             <div class="min-w-0 flex-1">
                 <div class="flex justify-between w-full">
                     <div class="flex items-center gap-1">
-                        <span class="text-sm font-semibold">
-                            {{ $chirp->user ? $chirp->user->name : 'Anonymous' }}
-                        </span>
+                        @if ($chirp->user)
+                            <a
+                                href="{{ route('profile.show', $chirp->user) }}"
+                                class="text-sm font-semibold hover:text-primary transition-colors"
+                            >
+                                {{ $chirp->user->name }}
+                            </a>
+                        @else
+                            <span class="text-sm font-semibold">
+                                Anonymous
+                            </span>
+                        @endif
 
                         <span class="text-base-content/60">·</span>
 
@@ -46,25 +65,30 @@
                             </span>
                         @endif
                     </div>
+
                     @can('update', $chirp)
-    <div class="flex gap-1">
-        <a href="/chirps/{{ $chirp->id }}/edit"
-           class="btn btn-ghost btn-xs">
-            Edit
-        </a>
+                        <div class="flex gap-1">
+                            <a
+                                href="/chirps/{{ $chirp->id }}/edit"
+                                class="btn btn-ghost btn-xs"
+                            >
+                                Edit
+                            </a>
 
-        <form method="POST" action="/chirps/{{ $chirp->id }}">
-            @csrf
-            @method('DELETE')
+                            <form method="POST" action="/chirps/{{ $chirp->id }}">
+                                @csrf
+                                @method('DELETE')
 
-            <button type="submit"
-                onclick="return confirm('Are you sure you want to delete this chirp?')"
-                class="btn btn-ghost btn-xs text-error">
-                Delete
-            </button>
-        </form>
-    </div>
-@endcan
+                                <button
+                                    type="submit"
+                                    onclick="return confirm('Are you sure you want to delete this chirp?')"
+                                    class="btn btn-ghost btn-xs text-error"
+                                >
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    @endcan
                 </div>
 
                 <p class="mt-1">{{ $chirp->message }}</p>
