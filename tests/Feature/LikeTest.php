@@ -227,4 +227,51 @@ public function test_guest_can_view_chirps_without_errors(): void
     $response->assertSeeText($chirp->message);
 }
 
+//verificar se a primeira página exibe apenas 10 Chirps.
+public function test_feed_displays_only_10_chirps_per_page(): void
+{
+    $user = User::factory()->create();
+
+//cria 15 registros de chirp
+    Chirp::factory()->count(15)->create([
+        'user_id' => $user->id,
+    ]);
+
+    //faz uma requisição para a página inicial
+    $response = $this->get('/');
+
+    //verifica se pagina carregou
+    $response->assertOk();
+
+    //verifica os dados enviados para a view
+    $response->assertViewHas('chirps', function ($chirps) {
+        //Verifica se a página atual contém exatamente 10 publicações e se o total é de 15
+        return $chirps->count() === 10
+            && $chirps->total() === 15;
+    });
+}
+
+//verificar se a segunda página exibe os 5 Chirps restantes.
+public function test_feed_displays_remaining_chirps_on_second_page(): void
+{
+    $user = User::factory()->create();
+
+//cria 15 registros de chirp
+    Chirp::factory()->count(15)->create([
+        'user_id' => $user->id,
+    ]);
+
+//acessar a segunda página
+    $response = $this->get('/?page=2');
+
+//verifica se pagina carregou
+    $response->assertOk();
+
+ //verifica os dados enviados para a view
+    $response->assertViewHas('chirps', function ($chirps) {
+        //Verifica se a página atual contém exatamente 5 publicações e se o total é de 15
+        return $chirps->count() === 5
+            && $chirps->total() === 15;
+    });
+}
 }
