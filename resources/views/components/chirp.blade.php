@@ -1,5 +1,15 @@
 @props(['chirp'])
 
+{{-- Verifica a quantidade de curtidas e se o usuário logado curtiu --}}
+@php
+
+$likesCount = $chirp->likes_count;
+
+    $userLiked = auth()->check()
+        ? $chirp->likes()->where('user_id', auth()->id())->exists()
+        : false;
+@endphp
+
 <div class="card bg-base-100 shadow">
     <div class="card-body">
         <div class="flex space-x-3">
@@ -92,6 +102,45 @@
                 </div>
 
                 <p class="mt-1">{{ $chirp->message }}</p>
+
+                {{-- Likes --}}
+                <div class="flex items-center gap-3 mt-4">
+                    @auth
+                        @if ($userLiked)
+                            <form method="POST" action="{{ route('chirps.unlike', $chirp) }}">
+                                @csrf
+                                @method('DELETE')
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-ghost btn-sm text-error"
+                                >
+                                    ❤️ Curtido
+                                </button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('chirps.like', $chirp) }}">
+                                @csrf
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-ghost btn-sm"
+                                >
+                                    🤍 Curtir
+                                </button>
+                            </form>
+                        @endif
+                    @else
+                        <span class="text-sm text-base-content/50">
+                            Faça login para curtir
+                        </span>
+                    @endauth
+
+                    <span class="text-sm text-base-content/60">
+                        {{ $likesCount }}
+                        {{ $likesCount === 1 ? 'curtida' : 'curtidas' }}
+                    </span>
+                </div>
             </div>
         </div>
     </div>

@@ -130,6 +130,9 @@
                 </div>
             @endforelse
         </div>
-
+        {{-- Paginação --}}
+        <div class="mt-8">
+            {{ $chirps->links() }}
+        </div>
     </div>
 </x-layout>

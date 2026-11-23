@@ -7,15 +7,34 @@ use Illuminate\Http\Request;
 
 class ChirpController extends Controller
 {
-    public function index()
-    {
-        $chirps = Chirp::with('user')
-            ->latest()
-            ->take(50)
-            ->get();
-
-        return view('home', ['chirps' => $chirps]);
+  
+public function index()
+{
+    // Inicia a consulta dos Chirps.
+    // with('user') carrega os usuários relacionados antecipadamente,
+    // evitando uma consulta ao banco para cada autor exibido no feed.
+    $query = Chirp::with('user')
+        // calcula a quantidade de curtidas de cada Chirp.
+        ->withCount('likes');
+    // Verifica se existe um usuário autenticado.
+    if (auth()->check()) {
+        // Verifica se o usuário logado curtiu cada publicação.
+        $query->withExists([
+            'likes as user_liked' => function ($query) {
+                // Considera apenas as curtidas feitas pelo usuário atual.
+                $query->where('user_id', auth()->id());
+            }
+        ]);
     }
+    // take(50) limita o feed às 50 publicações mais recentes.
+    $chirps = $query
+        ->latest()
+        ->paginate(10);
+
+        
+    return view('home', ['chirps' => $chirps]);
+}
+
 
     public function store(Request $request)
     {

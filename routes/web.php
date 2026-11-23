@@ -6,7 +6,7 @@ use App\Http\Controllers\Auth\Register;
 use App\Http\Controllers\Auth\Login;
 use App\Http\Controllers\Auth\Logout;
 use App\Http\Controllers\ProfileController;
-
+use App\Http\Controllers\LikeController;
 
 Route::get('/', [ChirpController::class, 'index']);
 
@@ -45,10 +45,17 @@ Route::put('/users/{user}', [ProfileController::class, 'update'])
 ->name('profile.update');
 
 
-// rotas protegidas
+// rotas protegidas - apenas com auth
 Route::middleware('auth')->group(function () {
     Route::post('/chirps', [ChirpController::class, 'store']);
     Route::get('/chirps/{chirp}/edit', [ChirpController::class, 'edit']);
     Route::put('/chirps/{chirp}', [ChirpController::class, 'update']);
     Route::delete('/chirps/{chirp}', [ChirpController::class, 'destroy']);
+   //adiciona curtida
+    Route::post('/chirps/{chirp}/like', [LikeController::class, 'store'])
+    ->name('chirps.like');
+    //remove curtida
+Route::delete('/chirps/{chirp}/like', [LikeController::class, 'destroy'])
+    ->name('chirps.unlike');
 });
+
