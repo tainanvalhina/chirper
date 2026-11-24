@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chirp;
+use App\Models\Comment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -27,4 +28,22 @@ class CommentController extends Controller
 
         return back();
     }
+
+    public function destroy(Comment $comment): RedirectResponse
+{
+    $user = auth()->user();
+
+    // Verifica se o usuário é o autor do comentário
+    // ou o autor da publicação.
+    if (
+        $comment->user_id !== $user->id &&
+        $comment->chirp->user_id !== $user->id
+    ) {
+        abort(403);
+    }
+
+    $comment->delete();
+
+    return back();
+}
 }

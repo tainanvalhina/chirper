@@ -112,4 +112,101 @@ public function test_comment_message_cannot_exceed_1000_characters(): void
         $chirp->comments()->where('user_id', $user->id)->count()
     );
 }
+
+//autor do comentario pode excluir seu proprio comentario
+public function test_comment_author_can_delete_their_comment(): void
+{
+    //Cria um usuário e um Chirp.
+    $user = User::factory()->create();
+    $chirp = Chirp::factory()->create();
+
+    //cria um comentario
+    $comment = $chirp->comments()->make([
+        'message' => 'Comentário para excluir',
+    ]);
+
+    //associa ao user e salva
+    $comment->user()->associate($user);
+    $comment->save();
+
+//usuario autenticado executa a acao de exclusao
+    $response = $this->actingAs($user)
+        ->delete(route('comments.destroy', $comment));
+
+        //verifica se apos excluir, houve redirecionamento
+    $response->assertRedirect();
+
+    //verifica se determinado registro não existe mais no banco de dados.
+    $this->assertDatabaseMissing('comments', [
+        'id' => $comment->id,
+    ]);
+}
+
+//verifica se autor do chirp pode excluir comentario de outra pessoa
+public function test_chirp_author_can_delete_comment(): void
+{
+    //cria author do chirp e usuario do comentario
+    $chirpOwner = User::factory()->create();
+    $commentAuthor = User::factory()->create();
+
+    //cria um chirp associando ao autor
+    $chirp = Chirp::factory()->create([
+        'user_id' => $chirpOwner->id,
+    ]);
+
+    //cria um comentario e associa a outro usuario
+    $comment = $chirp->comments()->make([
+        'message' => 'Comentário de outra pessoa',
+    ]);
+    $comment->user()->associate($commentAuthor);
+    $comment->save();
+
+
+    //autor do chirp requisita acao de exclusao
+    $response = $this->actingAs($chirpOwner)
+        ->delete(route('comments.destroy', $comment));
+
+        //verifica redirecionamento
+    $response->assertRedirect();
+
+     //verifica se determinado registro não existe mais no banco de dados.
+    $this->assertDatabaseMissing('comments', [
+        'id' => $comment->id,
+    ]);
+}
+
+//outro usuario nao pode excluir comentario
+public function test_other_user_cannot_delete_comment(): void
+{
+    //cria usuarios
+    $chirpOwner = User::factory()->create();
+    $commentAuthor = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+
+    //autor do chirp cria chirp
+    $chirp = Chirp::factory()->create([
+        'user_id' => $chirpOwner->id,
+    ]);
+
+//gera comentario e associa a um usuario
+    $comment = $chirp->comments()->make([
+        'message' => 'Comentário protegido',
+    ]);
+    $comment->user()->associate($commentAuthor);
+    $comment->save();
+
+    //um terceiro usuario tenta excluir
+    $response = $this->actingAs($otherUser)
+        ->delete(route('comments.destroy', $comment));
+
+        //verifica se a aplicação respondeu com HTTP 403 (Forbidden).
+    $response->assertForbidden();
+
+    //verifica se o comentário continua existindo no banco de dados.
+    $this->assertDatabaseHas('comments', [
+        'id' => $comment->id,
+    ]);
+}
+
 }

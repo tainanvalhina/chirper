@@ -180,21 +180,47 @@
                 {{-- Lista de comentários --}}
                 <div class="mt-4 space-y-3">
                     @foreach ($chirp->comments()->with('user')->latest()->get() as $comment)
-                        <div class="rounded-lg bg-gray-50 p-3">
-                            <div class="flex items-center justify-between">
-                                <strong class="text-sm text-gray-800">
-                                    {{ $comment->user?->name ?? 'Usuário removido' }}
-                                </strong>
+                      
+                    
+                    <div class="rounded-lg bg-gray-50 p-3">
+    <div class="flex items-center justify-between">
+        <strong class="text-sm text-gray-800">
+            {{ $comment->user?->name ?? 'Usuário removido' }}
+        </strong>
 
-                                <span class="text-xs text-gray-500">
-                                    {{ $comment->created_at->diffForHumans() }}
-                                </span>
-                            </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500">
+                {{ $comment->created_at->diffForHumans() }}
+            </span>
 
-                            <p class="mt-1 text-sm text-gray-700">
-                                {{ $comment->message }}
-                            </p>
-                        </div>
+            @if (
+                auth()->id() === $comment->user_id ||
+                auth()->id() === $chirp->user_id
+            )
+                <form
+                    method="POST"
+                    action="{{ route('comments.destroy', $comment) }}"
+                    onsubmit="return confirm('Tem certeza que deseja excluir este comentário?')"
+                >
+                    @csrf
+                    @method('DELETE')
+
+                    <button
+                        type="submit"
+                        class="text-xs text-red-600 hover:text-red-800"
+                    >
+                        Excluir
+                    </button>
+                </form>
+            @endif
+        </div>
+    </div>
+
+    <p class="mt-1 text-sm text-gray-700">
+        {{ $comment->message }}
+    </p>
+</div>
+
                     @endforeach
                 </div>
             </div>

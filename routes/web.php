@@ -61,6 +61,9 @@ Route::delete('/chirps/{chirp}/like', [LikeController::class, 'destroy'])
     //adiciona comentario
     Route::post('/chirps/{chirp}/comments', [CommentController::class, 'store'])
     ->name('comments.store');
+    //exclui comentario
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
+    ->name('comments.destroy');
     
 
 });
