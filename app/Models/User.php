@@ -53,4 +53,14 @@ public function comments(): HasMany
     return $this->hasMany(Comment::class);
 }
 
+public function followers(): HasMany
+{
+    return $this->hasMany(Follow::class, 'following_id');
+}
+
+public function following(): HasMany
+{
+    return $this->hasMany(Follow::class, 'follower_id');
+}
+
 }

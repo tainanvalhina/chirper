@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\Logout;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FollowController;
 
 Route::get('/', [ChirpController::class, 'index']);
 
@@ -47,7 +48,7 @@ Route::put('/users/{user}', [ProfileController::class, 'update'])
 
 
 // rotas protegidas - apenas com auth
-Route::middleware('auth')->group(function () {
+    Route::middleware('auth')->group(function () {
     Route::post('/chirps', [ChirpController::class, 'store']);
     Route::get('/chirps/{chirp}/edit', [ChirpController::class, 'edit']);
     Route::put('/chirps/{chirp}', [ChirpController::class, 'update']);
@@ -56,7 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/chirps/{chirp}/like', [LikeController::class, 'store'])
     ->name('chirps.like');
     //remove curtida
-Route::delete('/chirps/{chirp}/like', [LikeController::class, 'destroy'])
+    Route::delete('/chirps/{chirp}/like', [LikeController::class, 'destroy'])
     ->name('chirps.unlike');
     //adiciona comentario
     Route::post('/chirps/{chirp}/comments', [CommentController::class, 'store'])
@@ -64,7 +65,18 @@ Route::delete('/chirps/{chirp}/like', [LikeController::class, 'destroy'])
     //exclui comentario
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
     ->name('comments.destroy');
-    
+    //seguir alguem
+    Route::post('/users/{user}/follow', [FollowController::class, 'store'])
+    ->name('users.follow');
+    //unfollow
+    Route::delete('/users/{user}/unfollow', [FollowController::class, 'destroy'])
+    ->name('users.unfollow');
+    //ver seguidores
+    Route::get('/users/{user}/followers', [FollowController::class, 'followers'])
+    ->name('users.followers');
+    //ver seguindo
+    Route::get('/users/{user}/following', [FollowController::class, 'following'])
+    ->name('users.following');
 
 });
 

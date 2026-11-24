@@ -36,6 +36,18 @@
                             {{ $user->bio ?? 'Nenhuma biografia cadastrada.' }}
                         </p>
                     </div>
+
+                    <div class="flex gap-4 mt-2 text-sm">
+    <a href="{{ route('users.followers', $user) }}" class="hover:underline">
+        <strong>{{ $user->followers()->count() }}</strong>
+        Seguidores
+    </a>
+
+    <a href="{{ route('users.following', $user) }}" class="hover:underline">
+        <strong>{{ $user->following()->count() }}</strong>
+        Seguindo
+    </a>
+</div>
                     
                 </div>
 
@@ -46,6 +58,35 @@
     </a>
 @endif
             
+
+@auth
+    @if (auth()->id() !== $user->id)
+        @php
+            $isFollowing = $user->followers()
+                ->where('follower_id', auth()->id())
+                ->exists();
+        @endphp
+
+        @if ($isFollowing)
+            <form method="POST" action="{{ route('users.unfollow', $user) }}">
+                @csrf
+                @method('DELETE')
+
+                <button type="submit" class="btn btn-outline btn-sm mt-3">
+                    Deixar de seguir
+                </button>
+            </form>
+        @else
+            <form method="POST" action="{{ route('users.follow', $user) }}">
+                @csrf
+
+                <button type="submit" class="btn btn-primary btn-sm mt-3">
+                    Seguir
+                </button>
+            </form>
+        @endif
+    @endif
+@endauth
 
                 <div class="divider"></div>
 
