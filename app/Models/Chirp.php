@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Chirp extends Model
 {
     use HasFactory;
-    
+
   protected $fillable = [
         'message',
     ];
@@ -22,6 +22,11 @@ class Chirp extends Model
     public function likes(): HasMany
 {
     return $this->hasMany(Like::class);
+}
+
+public function comments(): HasMany
+{
+    return $this->hasMany(Comment::class);
 }
 
 }

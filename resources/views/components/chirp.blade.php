@@ -1,9 +1,9 @@
+
 @props(['chirp'])
 
 {{-- Verifica a quantidade de curtidas e se o usuário logado curtiu --}}
 @php
-
-$likesCount = $chirp->likes_count;
+    $likesCount = $chirp->likes_count;
 
     $userLiked = auth()->check()
         ? $chirp->likes()->where('user_id', auth()->id())->exists()
@@ -140,6 +140,62 @@ $likesCount = $chirp->likes_count;
                         {{ $likesCount }}
                         {{ $likesCount === 1 ? 'curtida' : 'curtidas' }}
                     </span>
+                </div>
+
+                {{-- Formulário de comentários --}}
+                @auth
+                    <form
+                        method="POST"
+                        action="{{ route('comments.store', $chirp) }}"
+                        class="mt-4"
+                    >
+                        @csrf
+
+                        <div class="flex gap-2">
+                            <input
+                                type="text"
+                                name="message"
+                                placeholder="Escreva um comentário..."
+                                class="flex-1 rounded-lg border-gray-300"
+                                required
+                                maxlength="1000"
+                            >
+
+                            <button
+                                type="submit"
+                                class="rounded-lg bg-gray-800 px-4 py-2 text-white"
+                            >
+                                Comentar
+                            </button>
+                        </div>
+
+                        @error('message')
+                            <p class="mt-1 text-sm text-red-600">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </form>
+                @endauth
+
+                {{-- Lista de comentários --}}
+                <div class="mt-4 space-y-3">
+                    @foreach ($chirp->comments()->with('user')->latest()->get() as $comment)
+                        <div class="rounded-lg bg-gray-50 p-3">
+                            <div class="flex items-center justify-between">
+                                <strong class="text-sm text-gray-800">
+                                    {{ $comment->user?->name ?? 'Usuário removido' }}
+                                </strong>
+
+                                <span class="text-xs text-gray-500">
+                                    {{ $comment->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+
+                            <p class="mt-1 text-sm text-gray-700">
+                                {{ $comment->message }}
+                            </p>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>

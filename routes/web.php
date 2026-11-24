@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\Login;
 use App\Http\Controllers\Auth\Logout;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\CommentController;
 
 Route::get('/', [ChirpController::class, 'index']);
 
@@ -57,5 +58,10 @@ Route::middleware('auth')->group(function () {
     //remove curtida
 Route::delete('/chirps/{chirp}/like', [LikeController::class, 'destroy'])
     ->name('chirps.unlike');
+    //adiciona comentario
+    Route::post('/chirps/{chirp}/comments', [CommentController::class, 'store'])
+    ->name('comments.store');
+    
+
 });
 
