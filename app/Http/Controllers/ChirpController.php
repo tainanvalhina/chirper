@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chirp;
+use Illuminate\View\View;
 use Illuminate\Http\Request;
 
 class ChirpController extends Controller
@@ -85,4 +86,26 @@ class ChirpController extends Controller
 
         return redirect('/')->with('success', 'Chirp deleted!');
     }
+
+
+    /**
+ * Exibe uma publicação específica.
+ */
+public function show(Chirp $chirp): View
+{
+    // Carrega o autor e os comentários com seus respectivos usuários
+    $chirp->load(['user', 'comments.user']);
+
+    // Carrega a quantidade de curtidas
+    $chirp->loadCount('likes');
+
+    // Verifica se o usuário autenticado curtiu esta publicação
+    if (auth()->check()) {
+        $chirp->user_liked = $chirp->likes()
+            ->where('user_id', auth()->id())
+            ->exists();
+    }
+
+    return view('chirps.show', compact('chirp'));
+}
 }

@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     use HasFactory;
+    use Notifiable;
 
+    
     //$fillable = define quais campos podem receber atribuição em massa
     protected $fillable = [
         'name',

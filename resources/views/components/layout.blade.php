@@ -24,20 +24,90 @@
     </div>
 
     <div class="navbar-end gap-2">
-        @auth
-            <span class="text-sm">{{ auth()->user()->name }}</span>
+    @auth
+    @php
+    $user = auth()->user();
 
-            <form method="POST" action="/logout" class="inline">
-                @csrf
-                <button type="submit" class="btn btn-ghost btn-sm">
-                    Logout
-                </button>
-            </form>
-        @else
-            <a href="/login" class="btn btn-ghost btn-sm">Sign In</a>
-            <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Sign Up</a>
-        @endauth
-    </div>
+    $unreadNotificationsCount = $user
+        ->unreadNotifications()
+        ->count();
+
+    $notifications = $user
+        ->notifications()
+        ->latest()
+        ->take(5)
+        ->get();
+@endphp
+
+        {{-- Sino de notificações --}}
+        <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+                <div class="indicator">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+
+                    @if ($unreadNotificationsCount > 0)
+                        <span class="badge badge-xs badge-primary indicator-item">
+                            {{ $unreadNotificationsCount }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            <div tabindex="0" class="dropdown-content z-50 card card-compact bg-base-100 shadow-xl w-80 p-4">
+    <p class="font-semibold mb-2">Notificações</p>
+
+    @forelse ($notifications as $notification)
+    <div class="border-b border-base-300 py-3 px-3 rounded-lg
+    {{ $notification->read_at ? 'bg-white text-gray-800' : 'bg-blue-100 text-blue-900' }}">
+        <form
+    method="POST"
+    action="{{ route('notifications.read', $notification->id) }}"
+>
+    @csrf
+
+    <button type="submit" class="text-sm text-left hover:underline">
+        <strong>{{ $notification->data['user_name'] }}</strong>
+        curtiu sua publicação!
+    </button>
+</form>
+            <p class="text-xs text-base-content/60 mt-1">
+                {{ $notification->created_at->diffForHumans() }}
+            </p>
+        </div>
+    @empty
+        <p class="text-sm text-base-content/60 py-3">
+            Você ainda não tem notificações.
+        </p>
+    @endforelse
+
+    <p class="text-xs text-base-content/60 mt-2">
+        {{ $unreadNotificationsCount }} notificações não lidas
+    </p>
+</div>
+        </div>
+
+        <span class="text-sm">{{ auth()->user()->name }}</span>
+
+        <form method="POST" action="/logout" class="inline">
+            @csrf
+            <button type="submit" class="btn btn-ghost btn-sm">
+                Logout
+            </button>
+        </form>
+    @else
+        <a href="/login" class="btn btn-ghost btn-sm">Sign In</a>
+        <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Sign Up</a>
+    @endauth
+</div>
 </nav>
 
 

@@ -83,5 +83,28 @@ Route::put('/users/{user}', [ProfileController::class, 'update'])
     Route::get('/users/{user}/following', [FollowController::class, 'following'])
     ->name('users.following');
 
+// Rota para marcar uma notificação como lida
+Route::post('/notifications/{notification}/read', function (
+    \Illuminate\Notifications\DatabaseNotification $notification
+) {
+    // Verifica se a notificação pertence ao usuário autenticado
+    if ($notification->notifiable_id !== auth()->id()) {
+        // Impede que um usuário altere notificações de outra pessoa
+        abort(403);
+    }
+
+    // Marca a notificação como lida no banco de dados
+    $notification->markAsRead();
+
+    // Redireciona para o perfil de quem curtiu a publicação
+    return redirect(
+        route('chirps.show', $notification->data['chirp_id'])
+    );
+
+})->name('notifications.read');
+
+// Exibe uma publicação específica
+Route::get('/chirps/{chirp}', [ChirpController::class, 'show'])
+    ->name('chirps.show');
 });
 

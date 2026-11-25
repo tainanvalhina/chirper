@@ -6,6 +6,7 @@ use App\Models\Chirp;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Notifications\ChirpLiked;
 
 class LikeTest extends TestCase
 {
@@ -274,4 +275,74 @@ public function test_feed_displays_remaining_chirps_on_second_page(): void
             && $chirps->total() === 15;
     });
 }
+
+//verifica se autor de uma publicação recebe uma notificação quando outra pessoa curte o Chirp dele
+public function test_author_receives_notification_when_someone_likes_their_chirp(): void
+{
+    // Arrange: cria o autor e quem realizará a curtida.
+    $author = User::factory()->create();
+    $liker = User::factory()->create();
+
+    // Cria um Chirp pertencente ao autor.
+    $chirp = $author->chirps()->create([
+        'message' => 'Meu primeiro Chirp!',
+    ]);
+
+    // Act: outro usuário curte a publicação.
+    $this->actingAs($liker)
+        ->post(route('chirps.like', $chirp));
+
+    // Assert: verifica se a notificação foi salva no banco.
+    $this->assertDatabaseHas('notifications', [
+        'notifiable_id' => $author->id,
+        'notifiable_type' => User::class,
+        'type' => ChirpLiked::class,
+    ]);
+}
+
+
+//se usuario tentar curtir novamente uma publicação que já curtiu, o sistema não crie outra notificação.
+public function test_liking_the_same_chirp_twice_does_not_create_duplicate_notifications(): void
+{
+    $author = User::factory()->create();
+    $liker = User::factory()->create();
+
+    $chirp = $author->chirps()->create([
+        'message' => 'Meu primeiro Chirp!',
+    ]);
+
+
+    //usuario autenticado curte chirp de outro usuario
+    $this->actingAs($liker)
+        ->post(route('chirps.like', $chirp));
+
+        //curte novamente
+    $this->post(route('chirps.like', $chirp));
+
+    //verifica se gerou apenas uma notificacao
+    $this->assertDatabaseCount('notifications', 1);
+}
+
+
+//usuario nao deve receber notificacao de sua propria curtida
+public function test_user_does_not_receive_notification_when_liking_own_chirp(): void
+{
+    // Arrange: cria um usuário.
+    $user = User::factory()->create();
+
+    // Cria um Chirp pertencente ao próprio usuário.
+    $chirp = $user->chirps()->create([
+        'message' => 'Meu próprio Chirp!',
+    ]);
+
+    // Act: o autor curte sua própria publicação.
+    $this->actingAs($user)
+        ->post(route('chirps.like', $chirp));
+
+    // Assert: nenhuma notificação deve ser criada.
+    $this->assertDatabaseCount('notifications', 0);
+}
+
+
+
 }

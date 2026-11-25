@@ -4,16 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Chirp;
 use Illuminate\Http\RedirectResponse;
+use App\Notifications\ChirpLiked;
+
 
 class LikeController extends Controller
 {
     public function store(Chirp $chirp): RedirectResponse
     {
-        //pega usuario autenticado, procura uma curtida daquele usuario, se ja existir mantem, se nao existir cria nova
-        $chirp->likes()->firstOrCreate([
+        $like = $chirp->likes()->firstOrCreate([
             'user_id' => auth()->id(),
         ]);
-
+    
+        if ($like->wasRecentlyCreated && $chirp->user_id !== auth()->id()) {
+            $chirp->user->notify(
+                new ChirpLiked(auth()->user(), $chirp)
+            );
+        }
+    
         return back();
     }
 
