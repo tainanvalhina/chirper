@@ -8,32 +8,42 @@ use Illuminate\Http\Request;
 class ChirpController extends Controller
 {
   
-public function index()
-{
-    // Inicia a consulta dos Chirps.
-    // with('user') carrega os usuários relacionados antecipadamente,
-    // evitando uma consulta ao banco para cada autor exibido no feed.
-    $query = Chirp::with('user')
-        // calcula a quantidade de curtidas de cada Chirp.
-        ->withCount('likes');
-    // Verifica se existe um usuário autenticado.
-    if (auth()->check()) {
-        // Verifica se o usuário logado curtiu cada publicação.
-        $query->withExists([
-            'likes as user_liked' => function ($query) {
-                // Considera apenas as curtidas feitas pelo usuário atual.
-                $query->where('user_id', auth()->id());
-            }
-        ]);
+    public function index()
+    {
+        // Recupera o usuário autenticado.
+        $user = auth()->user();
+    
+        // Inicia a consulta dos Chirps.
+        $query = Chirp::with('user')
+            ->withCount('likes');
+    
+        // Se existir um usuário autenticado...
+        if ($user) {
+    
+            // Busca os próprios Chirps e os Chirps de quem ele segue.
+            $query->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhereIn(
+                        'user_id',
+                        $user->following()->select('following_id')
+                    );
+            });
+    
+            // Verifica se o usuário autenticado curtiu cada Chirp.
+            $query->withExists([
+                'likes as user_liked' => function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                }
+            ]);
+        }
+    
+        // Ordena pelas publicações mais recentes e pagina os resultados.
+        $chirps = $query
+            ->latest()
+            ->paginate(10);
+    
+        return view('home', ['chirps' => $chirps]);
     }
-    // take(50) limita o feed às 50 publicações mais recentes.
-    $chirps = $query
-        ->latest()
-        ->paginate(10);
-
-        
-    return view('home', ['chirps' => $chirps]);
-}
 
 
     public function store(Request $request)
