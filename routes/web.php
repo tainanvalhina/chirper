@@ -9,8 +9,13 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\SearchController;
 
 Route::get('/', [ChirpController::class, 'index']);
+
+//search route
+Route::get('/search', [SearchController::class, 'index'])
+    ->name('search');
 
 // Registration routes
 Route::view('/register', 'auth.register')

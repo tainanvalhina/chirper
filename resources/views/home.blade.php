@@ -20,6 +20,27 @@
             </p>
         </div>
 
+        {{-- Search --}}
+<div class="mb-8">
+    <form action="{{ route('search') }}" method="GET">
+        <div class="flex gap-2">
+            <input
+                type="text"
+                name="search"
+                placeholder="Search users or Chirps..."
+                class="input input-bordered w-full rounded-full"
+            >
+
+            <button
+                type="submit"
+                class="btn btn-primary rounded-full px-6"
+            >
+                Search
+            </button>
+        </div>
+    </form>
+</div>
+
         {{-- Composer --}}
         @auth
             <div class="card bg-base-100 border border-base-300/60 shadow-sm rounded-2xl mb-10">
