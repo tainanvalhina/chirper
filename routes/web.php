@@ -10,6 +10,8 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FollowController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\NotificationController;
+
 
 Route::get('/', [ChirpController::class, 'index']);
 
@@ -106,5 +108,10 @@ Route::post('/notifications/{notification}/read', function (
 // Exibe uma publicação específica
 Route::get('/chirps/{chirp}', [ChirpController::class, 'show'])
     ->name('chirps.show');
+
+    // Exibe o histórico completo de notificações
+Route::get('/notifications', [NotificationController::class, 'index'])
+->name('notifications.index');
+
 });
 

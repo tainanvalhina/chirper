@@ -92,6 +92,15 @@
     <p class="text-xs text-base-content/60 mt-2">
         {{ $unreadNotificationsCount }} notificações não lidas
     </p>
+
+    <div class="border-t border-base-300 mt-3 pt-3">
+    <a
+        href="{{ route('notifications.index') }}"
+        class="btn btn-ghost btn-sm w-full"
+    >
+        Ver todas as notificações
+    </a>
+</div>
 </div>
         </div>
 
