@@ -191,4 +191,62 @@ public function test_user_can_view_their_following_list(): void
     $response->assertSeeText($following->name);
 }
 
+//teste se o follow cria notificacao
+public function test_following_a_user_creates_a_notification(): void
+{
+    // Criamos quem vai seguir.
+    $follower = User::factory()->create();
+
+    // Criamos quem receberá o novo seguidor.
+    $followed = User::factory()->create();
+
+    // Simulamos o usuário autenticado seguindo outra pessoa.
+    $this->actingAs($follower)
+        ->post(route('users.follow', $followed));
+
+    // busca a primeira notificacao recebida pelo usuário seguido.
+    $notification = $followed->notifications()
+        ->where('type', \App\Notifications\NewFollower::class)
+        ->first();
+
+    // Verificamos se a notificação foi criada.
+    $this->assertNotNull($notification);
+
+    // Verificamos se os dados identificam corretamente quem seguiu.
+    $this->assertEquals(
+        $follower->id,
+        $notification->data['user_id']
+    );
+
+    $this->assertEquals(
+        $follower->name,
+        $notification->data['user_name']
+    );
+}
+
+
+//garante que seguir a mesma pessoa novamente não gera notificações duplicadas.
+public function test_following_the_same_user_twice_does_not_create_duplicate_notifications(): void
+{
+    // Criamos quem vai seguir e quem será seguido.
+    $follower = User::factory()->create();
+    $followed = User::factory()->create();
+
+    // Primeira tentativa de seguir.
+    $this->actingAs($follower)
+        ->post(route('users.follow', $followed));
+
+    // Segunda tentativa de seguir a mesma pessoa.
+    $this->post(route('users.follow', $followed));
+
+    // Verificamos se existe somente uma notificação.
+    $this->assertCount(
+        1,
+        $followed->notifications()
+            ->where('type', \App\Notifications\NewFollower::class)
+            ->get()
+    );
+}
+
+
 }

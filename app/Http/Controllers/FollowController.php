@@ -6,26 +6,35 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Notifications\NewFollower;
+
 
 class FollowController extends Controller
 {
-    public function store(Request $request, User $user): RedirectResponse
-    {
-        $follower = $request->user();
+    
+public function store(Request $request, User $user): RedirectResponse
+{
+    // Usuário que está começando a seguir alguém.
+    $follower = $request->user();
 
-        //impedindo que alguém siga a si mesmo
-        if ($follower->id === $user->id) {
-            abort(403);
-        }
-
-        //procura um relacionamento ja existente, se nao existir, cria um novo
-        $follower->following()->firstOrCreate([
-            'following_id' => $user->id,
-        ]);
-
-        //retorna a pagina anterior
-        return back();
+    // Impede que o usuário siga a si mesmo.
+    if ($follower->id === $user->id) {
+        abort(403);
     }
+
+    // Cria o relacionamento ou recupera um existente.
+    $follow = $follower->following()->firstOrCreate([
+        'following_id' => $user->id,
+    ]);
+
+    // Só envia notificação se o relacionamento acabou de ser criado.
+    if ($follow->wasRecentlyCreated) {
+        $user->notify(new NewFollower($follower));
+    }
+
+    return back();
+}
+
 
     public function destroy(Request $request, User $user): RedirectResponse
 {

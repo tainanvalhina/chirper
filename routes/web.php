@@ -98,10 +98,19 @@ Route::post('/notifications/{notification}/read', function (
     // Marca a notificação como lida no banco de dados
     $notification->markAsRead();
 
-    // Redireciona para o perfil de quem curtiu a publicação
+    // Se for uma notificação de novo seguidor,
+// redireciona para o perfil de quem começou a seguir.
+if ($notification->type === \App\Notifications\NewFollower::class) {
     return redirect(
-        route('chirps.show', $notification->data['chirp_id'])
+        route('profile.show', $notification->data['user_id'])
     );
+}
+
+// Se for uma notificação de curtida,
+// continua redirecionando para a publicação.
+return redirect(
+    route('chirps.show', $notification->data['chirp_id'])
+);
 
 })->name('notifications.read');
 
