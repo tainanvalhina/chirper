@@ -7,6 +7,7 @@ use App\Models\Comment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Notifications\CommentAdded;
 
 class CommentTest extends TestCase
 {
@@ -209,4 +210,61 @@ public function test_other_user_cannot_delete_comment(): void
     ]);
 }
 
+// verifica se comentar na publicação de outra pessoa gera notificação
+public function test_commenting_on_another_users_chirp_creates_notification(): void
+{
+    // Cria o dono da publicação e quem fará o comentário.
+    $chirpOwner = User::factory()->create();
+    $commentAuthor = User::factory()->create();
+
+    // Cria uma publicação pertencente ao primeiro usuário.
+    $chirp = Chirp::factory()->create([
+        'user_id' => $chirpOwner->id,
+    ]);
+
+    // O segundo usuário comenta na publicação.
+    $this->actingAs($commentAuthor)
+        ->post(route('comments.store', $chirp), [
+            'message' => 'Gostei da sua publicação!',
+        ]);
+
+    // Busca a notificação recebida pelo dono da publicação.
+    $notification = $chirpOwner->notifications()
+        ->where('type', CommentAdded::class)
+        ->first();
+
+    // Verifica se a notificação foi criada.
+    $this->assertNotNull($notification);
+
+    // Verifica se os dados da notificação estão corretos.
+    $this->assertEquals(
+        $commentAuthor->id,
+        $notification->data['user_id']
+    );
+
+    $this->assertEquals(
+        $chirp->id,
+        $notification->data['chirp_id']
+    );
+}
+
+
+// verifica se comentar na própria publicação não gera notificação
+public function test_commenting_on_own_chirp_does_not_create_notification(): void
+{
+    // cria usuáriod
+    $user = User::factory()->create();
+    $chirp = Chirp::factory()->create([
+        'user_id' => $user->id,
+    ]);
+
+    // o próprio dono comenta na publicação.
+    $this->actingAs($user)
+        ->post(route('comments.store', $chirp), [
+            'message' => 'Meu próprio comentário!',
+        ]);
+
+    // Verifica que nenhuma notificação foi criada.
+    $this->assertDatabaseCount('notifications', 0);
+}
 }
