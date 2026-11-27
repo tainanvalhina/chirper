@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
+use App\Notifications\NewFollower;
+
 
 class NotificationTest extends TestCase
 {
@@ -129,8 +131,8 @@ foreach (range(1, 12) as $number) {
 
 
 
-//verifica se publicacoes sao marcadas como lidas
-public function test_user_can_mark_notification_as_read(): void
+//verifica se as notificacoes de curtidas sao marcadas como lidas
+public function test_user_can_mark_likes_notification_as_read(): void
 {
 
     $user = User::factory()->create();
@@ -162,6 +164,8 @@ public function test_user_can_mark_notification_as_read(): void
         $notification->fresh()->read_at
     );
 }
+
+
 
 //usuário nao pode marcar a notificação de outra pessoa como lida
 public function test_user_cannot_mark_another_users_notification_as_read(): void
@@ -212,5 +216,29 @@ public function test_user_cannot_mark_nonexistent_notification_as_read(): void
 }
 
 
+
+// verifica se a notificação de novo seguidor é marcada como lida
+public function test_user_can_mark_follower_notification_as_read(): void
+{
+    //cria dois usuarios
+    $follower = User::factory()->create();
+    $followed = User::factory()->create();
+
+    // cria a notificação de novo seguidor.
+    $followed->notify(new NewFollower($follower));
+
+    // recupera a notificação.
+    $notification = $followed->notifications()->first();
+
+    // o usuário que recebeu a notificação tenta marcá-la como lida.
+    $response = $this->actingAs($followed)
+        ->post(route('notifications.read', $notification->id));
+
+    //verifica se foi redirecionado para o perfil do novo seguidor.
+    $response->assertRedirect(route('profile.show', $follower->id));
+
+    //verifica se a notificação foi marcada como lida.
+    $this->assertNotNull($notification->fresh()->read_at);
+}
 
 }

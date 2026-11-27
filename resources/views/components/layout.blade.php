@@ -74,10 +74,11 @@
 >
     @csrf
 
+
     <button type="submit" class="text-sm text-left hover:underline">
-        <strong>{{ $notification->data['user_name'] }}</strong>
-        curtiu sua publicação!
-    </button>
+    {{ $notification->data['message'] }}
+</button>
+
 </form>
             <p class="text-xs text-base-content/60 mt-1">
                 {{ $notification->created_at->diffForHumans() }}

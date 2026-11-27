@@ -25,7 +25,7 @@
                             {{ $notification->data['user_name'] }}
                         </strong>
 
-                        curtiu sua publicação!
+                        {{ $notification->data['message'] }}
 
                         <p class="text-xs mt-2 opacity-70">
                             {{ $notification->created_at->diffForHumans() }}
